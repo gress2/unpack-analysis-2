@@ -1,3 +1,4 @@
+import itertools
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn import datasets, linear_model
@@ -31,18 +32,19 @@ def get_selection_type(unique, filter_dict):
     
 # expects an array of timing means and a complementing numeric array from another dimension  
 # ASSUMPTION: sorted 
-def linearity_test(x_axis, y_axis, plot=False):
+def linearity_test(x_axis, y_axis, show_output=False):
     x_axis_2d = np.matrix(x_axis).T
     regr = linear_model.LinearRegression()	 
     regr.fit(x_axis_2d, y_axis)
-    print('R2 score: %.8f' % regr.score(x_axis_2d, y_axis))
-    print('An R2 of 1 is a perfect fit. Range: (-infty, 1]')
-    if plot is False:
-        return
-    y_pred = regr.predict(x_axis_2d)
-    plt.scatter(x_axis, y_axis, color='black')
-    plt.plot(x_axis, y_pred, color='blue', linewidth='2')
-    plt.show()
+    r2 = regr.score(x_axis_2d, y_axis)
+    if show_output:
+        print('R2 score: %.8f' % r2)
+        print('An R2 of 1 is a perfect fit. Range: (-infty, 1]')
+        y_pred = regr.predict(x_axis_2d)
+        plt.scatter(x_axis, y_axis, color='black')
+        plt.plot(x_axis, y_pred, color='blue', linewidth='2')
+        plt.show()
+    return r2 
 
 # build an x, y set from dataframe. if y_col is 'timing', will use the timing mean
 def xy(dataframe, x_col, y_col, sortx=True):
@@ -58,4 +60,31 @@ def xy(dataframe, x_col, y_col, sortx=True):
         else:
             y.append(row[y_col])
     return x, y
+
+def all_filter_dicts(unique_set, let_vary):
+    filter_dicts = []
+    parameter_space = []
+    key_list = list(unique_set.keys())
+    # define the parameter space
+    for key in unique_set:
+        if key == let_vary:
+            continue
+        parameter_space.append(unique_set[key])
+    combinations = itertools.product(*parameter_space)
+    for combination in combinations:
+        filter_dict = {}
+        for i in range(1, len(combination)):
+            filter_dict[key_list[i]] = combination[i]
+        filter_dicts.append(filter_dict)
+    return filter_dicts
+
+# go through every parameter configuration (keeping all constant except # iterations)
+# and find R2 score from linear regression. if R2 > some threshold, print the problem-
+# atic configuration. Requires the dataframes "unique_set" 
+def linearity_test_all(unique_set):
+    filter_dicts = all_filter_dicts(unique_set, let_vary='iterations')
+    for filter_dict in filter_dicts:
+        filtered_df = filter_df(filter_dict, df)
+ 
+
 
