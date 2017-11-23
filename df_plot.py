@@ -87,11 +87,11 @@ def all_filter_dicts(unique_set, let_vary):
 # go through every parameter configuration (keeping all constant except # iterations)
 # and find R2 score from linear regression. if R2 > some threshold, print the problem-
 # atic configuration. Requires the dataframes "unique_set" and the dataframe itself 
-def linearity_test_all(unique_set, df):
-    filter_dicts = all_filter_dicts(unique_set, let_vary=['iterations'])
+def linearity_test_all(unique_set, df, test_dimension):
+    filter_dicts = all_filter_dicts(unique_set, let_vary=[test_dimension])
     for filter_dict in filter_dicts:
         filtered_df = filter_df(filter_dict, df) 
-        x, y = xy(filtered_df, x_col='iterations', y_col='timing', sortx=True)
+        x, y = xy(filtered_df, x_col=test_dimension, y_col='timing', sortx=True)
         print(linearity_test(x, y))
 
 def experiment_filter_dicts(unique_set, must_haves, let_vary):
