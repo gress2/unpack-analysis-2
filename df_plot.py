@@ -1,3 +1,4 @@
+import copy
 import itertools
 import matplotlib.pyplot as plt
 import numpy as np
@@ -62,15 +63,19 @@ def xy(dataframe, x_col, y_col, sortx=True):
             y.append(row[y_col])
     return x, y
 
+def xyz(dataframe, x_col, y_col, z_col):
+    return 1
+
 def all_filter_dicts(unique_set, let_vary):
+    unique_mutable = copy.deepcopy(unique_set)
     filter_dicts = []
     parameter_space = []
-    key_list = list(unique_set.keys())
+    for param in let_vary:
+        del unique_mutable[param]
+    key_list = list(unique_mutable.keys())
     # define the parameter space
-    for key in unique_set:
-        if key == let_vary:
-            continue
-        parameter_space.append(unique_set[key])
+    for key in unique_mutable:
+        parameter_space.append(unique_mutable[key])
     combinations = itertools.product(*parameter_space)
     for combination in combinations:
         filter_dict = {}
@@ -83,8 +88,15 @@ def all_filter_dicts(unique_set, let_vary):
 # and find R2 score from linear regression. if R2 > some threshold, print the problem-
 # atic configuration. Requires the dataframes "unique_set" and the dataframe itself 
 def linearity_test_all(unique_set, df):
-    filter_dicts = all_filter_dicts(unique_set, let_vary='iterations')
+    filter_dicts = all_filter_dicts(unique_set, let_vary=['iterations'])
     for filter_dict in filter_dicts:
         filtered_df = filter_df(filter_dict, df) 
         x, y = xy(filtered_df, x_col='iterations', y_col='timing', sortx=True)
         print(linearity_test(x, y))
+
+def experiment_filter_dicts(unique_set, must_haves, let_vary):
+    unique_mutable = copy.deepcopy(unique_set) 
+    for key in must_haves:
+        unique_mutable[key] = [must_haves[key]] 
+    return all_filter_dicts(unique_mutable, let_vary)
+
