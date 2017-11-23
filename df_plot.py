@@ -41,6 +41,7 @@ def linearity_test(x_axis, y_axis, show_output=False):
         print('R2 score: %.8f' % r2)
         print('An R2 of 1 is a perfect fit. Range: (-infty, 1]')
         y_pred = regr.predict(x_axis_2d)
+        print(y_pred)
         plt.scatter(x_axis, y_axis, color='black')
         plt.plot(x_axis, y_pred, color='blue', linewidth='2')
         plt.show()
@@ -80,11 +81,10 @@ def all_filter_dicts(unique_set, let_vary):
 
 # go through every parameter configuration (keeping all constant except # iterations)
 # and find R2 score from linear regression. if R2 > some threshold, print the problem-
-# atic configuration. Requires the dataframes "unique_set" 
-def linearity_test_all(unique_set):
+# atic configuration. Requires the dataframes "unique_set" and the dataframe itself 
+def linearity_test_all(unique_set, df):
     filter_dicts = all_filter_dicts(unique_set, let_vary='iterations')
     for filter_dict in filter_dicts:
-        filtered_df = filter_df(filter_dict, df)
- 
-
-
+        filtered_df = filter_df(filter_dict, df) 
+        x, y = xy(filtered_df, x_col='iterations', y_col='timing', sortx=True)
+        print(linearity_test(x, y))
