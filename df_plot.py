@@ -2,6 +2,7 @@ import copy
 import itertools
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from sklearn import datasets, linear_model
 from sklearn.metrics import mean_squared_error, r2_score
 import warnings
@@ -12,6 +13,16 @@ def filter_df(filter, df):
     for key in filter:
         df = df[(df[key] == filter[key])]
     return df
+
+def multi_filter_df(filters, df):
+    subframes = []
+    for filter in filters:
+        subframe = copy.deepcopy(df)
+        for key in filter:
+            subframe = subframe[(subframe[key] == filter[key])]
+        subframes.append(subframe)
+    return pd.concat(subframes)
+        
 
 # get the set of unique values for each column of the dataframe (minus timing)
 def unique_set(df):
@@ -63,6 +74,7 @@ def xy(dataframe, x_col, y_col, sortx=True):
             y.append(row[y_col])
     return x, y
 
+# z here is the per line dimension
 def xyz(dataframe, x_col, y_col, z_col):
     return 1
 
@@ -100,3 +112,19 @@ def experiment_filter_dicts(unique_set, must_haves, let_vary):
         unique_mutable[key] = [must_haves[key]] 
     return all_filter_dicts(unique_mutable, let_vary)
 
+def make_tuple_types(repeated_type, repeats_ary):
+    types = []
+    for repeat_num in repeats_ary:
+        str_ary = [repeated_type] * repeat_num
+        type = 'std::tuple<' + ', '.join(str_ary) + '>'
+        types.append(type)
+    return types
+        
+def constrain_types(filter_dicts, allowed_types):
+    cleaned_dicts = [] 
+    for filter_dict in filter_dicts:
+        if filter_dict['type'] in allowed_types:
+            cleaned_dicts.append(filter_dict)
+    return cleaned_dicts
+
+     
