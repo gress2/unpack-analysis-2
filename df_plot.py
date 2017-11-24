@@ -22,7 +22,6 @@ def multi_filter_df(filters, df):
             subframe = subframe[(subframe[key] == filter[key])]
         subframes.append(subframe)
     return pd.concat(subframes)
-        
 
 # get the set of unique values for each column of the dataframe (minus timing)
 def unique_set(df):
@@ -75,8 +74,21 @@ def xy(dataframe, x_col, y_col, sortx=True):
     return x, y
 
 # z here is the per line dimension
-def xyz(dataframe, x_col, y_col, z_col):
-    return 1
+def multi_xy(dataframe, x_col, y_col, multi):
+    df = dataframe
+    multi_dict = {}
+    multi_keys = df[multi].unique()
+    for key in multi_keys:
+        multi_dict[key] = { 'x': [], 'y': [] }
+    for idx, row in df.iterrows():
+        x = row[x_col] 
+        if y_col is 'timing':
+            y = np.mean(row['timing'])
+        else:
+            y = row[y_col]
+        multi_dict[row[multi]]['x'].append(x) 
+        multi_dict[row[multi]]['y'].append(y) 
+    return multi_dict
 
 def all_filter_dicts(unique_set, let_vary):
     unique_mutable = copy.deepcopy(unique_set)
