@@ -73,9 +73,10 @@ def xy(dataframe, x_col, y_col, sortx=True):
             y.append(row[y_col])
     return x, y
 
-# z here is the per line dimension
-def multi_xy(dataframe, x_col, y_col, multi):
+def multi_xy(dataframe, x_col, y_col, multi, sortx=True):
     df = dataframe
+    if sortx:
+        df = df.sort_values(x_col)
     multi_dict = {}
     multi_keys = df[multi].unique()
     for key in multi_keys:
@@ -139,4 +140,16 @@ def constrain_types(filter_dicts, allowed_types):
             cleaned_dicts.append(filter_dict)
     return cleaned_dicts
 
-     
+def numeric_types(dataframe):
+    for idx, row in dataframe.iterrows():
+        dataframe.loc[idx, 'type'] = dataframe.loc[idx, 'type'].count(',') + 1
+    return dataframe
+
+def multi_line_plot(multi_xy):
+    for key in multi_xy:
+        x = multi_xy[key]['x']
+        y = multi_xy[key]['y']
+        plt.plot(x, y, label=key)
+    plt.legend()
+    plt.show()
+
