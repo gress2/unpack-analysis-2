@@ -153,3 +153,26 @@ def multi_line_plot(multi_xy):
     plt.legend()
     plt.show()
 
+def multi_bar(multi_xy):
+    keys = list(multi_xy.keys())
+    n_groups = len(keys)
+    bar_width = 0.2
+    opacity = 0.8
+    offset = 0
+    
+    x = multi_xy[keys[0]]['x'] 
+    inds = np.arange(len(x))
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    
+    for key in multi_xy:
+        yvals = np.array(multi_xy[key]['y'])
+        ax.bar(inds+offset, yvals, bar_width, label=key)
+        offset += bar_width
+    plt.xticks(inds + bar_width, list(x))
+    plt.legend()
+    plt.show()
+
+
+
