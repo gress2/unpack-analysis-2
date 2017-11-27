@@ -1,6 +1,7 @@
 import copy
 import itertools
 import matplotlib.pyplot as plt
+import matplotlib.mlab as mlab
 import numpy as np
 import pandas as pd
 from sklearn import datasets, linear_model
@@ -125,12 +126,13 @@ def experiment_filter_dicts(unique_set, must_haves, let_vary):
         unique_mutable[key] = [must_haves[key]] 
     return all_filter_dicts(unique_mutable, let_vary)
 
-def make_tuple_types(repeated_type, repeats_ary):
+def make_tuple_types(repeated_types, repeats_ary):
     types = []
-    for repeat_num in repeats_ary:
-        str_ary = [repeated_type] * repeat_num
-        type = 'std::tuple<' + ', '.join(str_ary) + '>'
-        types.append(type)
+    for repeated_type in repeated_types:
+        for repeat_num in repeats_ary:
+            str_ary = [repeated_type] * repeat_num
+            type = 'std::tuple<' + ', '.join(str_ary) + '>'
+            types.append(type)
     return types
         
 def constrain_types(filter_dicts, allowed_types):
@@ -140,9 +142,19 @@ def constrain_types(filter_dicts, allowed_types):
             cleaned_dicts.append(filter_dict)
     return cleaned_dicts
 
-def numeric_types(dataframe):
+def get_type_base(type):
+    first_open = type.find('<')
+    first_comma = type.find(',')
+    if first_comma == -1:
+        first_comma = type.find('>')
+    return type[first_open + 1:first_comma]
+
+def numeric_types(dataframe, add_type_bases=False):
     for idx, row in dataframe.iterrows():
-        dataframe.loc[idx, 'type'] = dataframe.loc[idx, 'type'].count(',') + 1
+        cur_type = dataframe.loc[idx, 'type']
+        if add_type_bases:
+            dataframe.loc[idx, 'type_base'] = get_type_base(cur_type) 
+        dataframe.loc[idx, 'type'] = cur_type.count(',') + 1
     return dataframe
 
 def multi_line_plot(multi_xy):
@@ -174,5 +186,10 @@ def multi_bar(multi_xy):
     plt.legend()
     plt.show()
 
-
+def histogram(selection, plot_dim):
+    n, bins, patches = plt.hist(selection[plot_dim], 50, normed=1, \
+            facecolor='green', alpha=0.75)
+    plt.xlabel(plot_dim)
+    plt.ylabel('frequency')
+    plt.show()
 
