@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import copy
 import itertools
 import matplotlib.pyplot as plt
@@ -74,8 +75,7 @@ def xy(dataframe, x_col, y_col, sortx=True):
             y.append(row[y_col])
     return x, y
 
-def multi_xy(dataframe, x_col, y_col, multi, sortx=True):
-    df = dataframe
+def multi_xy(df, x_col, y_col, multi, sortx=True):
     if sortx:
         df = df.sort_values(x_col)
     multi_dict = {}
@@ -91,6 +91,14 @@ def multi_xy(dataframe, x_col, y_col, multi, sortx=True):
         multi_dict[row[multi]]['x'].append(x) 
         multi_dict[row[multi]]['y'].append(y) 
     return multi_dict
+
+def m2_xy(df, x_col, y_col, multi1, multi2, sortx=True):
+    ret = dict()
+    multi2_keys = df[multi2].unique()
+    for key in multi2_keys:
+        reduced_df = df[(df[multi2] == key)]
+        ret[key] = multi_xy(reduced_df, x_col, y_col, multi1, sortx)
+    return ret
 
 def all_filter_dicts(unique_set, let_vary):
     unique_mutable = copy.deepcopy(unique_set)
@@ -149,12 +157,16 @@ def get_type_base(type):
         first_comma = type.find('>')
     return type[first_open + 1:first_comma]
 
-def numeric_types(dataframe, add_type_bases=False):
+def numeric_types(dataframe):
     for idx, row in dataframe.iterrows():
         cur_type = dataframe.loc[idx, 'type']
-        if add_type_bases:
-            dataframe.loc[idx, 'type_base'] = get_type_base(cur_type) 
         dataframe.loc[idx, 'type'] = cur_type.count(',') + 1
+    return dataframe
+
+def add_type_bases(dataframe):
+    for idx, row in dataframe.iterrows():
+        cur_type = dataframe.loc[idx, 'type']
+        dataframe.loc[idx, 'type_base'] = get_type_base(cur_type)
     return dataframe
 
 def multi_line_plot(multi_xy):
@@ -167,7 +179,6 @@ def multi_line_plot(multi_xy):
 
 def multi_bar(multi_xy):
     keys = list(multi_xy.keys())
-    n_groups = len(keys)
     bar_width = 0.2
     opacity = 0.8
     offset = 0
@@ -184,6 +195,52 @@ def multi_bar(multi_xy):
         offset += bar_width
     plt.xticks(inds + bar_width, list(x))
     plt.legend()
+    plt.show()
+
+def m2_bar(m2_xy, color_ary=['orange', 'blue']):
+    outer_keys = list(m2_xy.keys()) 
+    bar_width = 0.2
+    opacity = 0.8
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    offset = 0
+    sum_inds = 0
+    xticks_x = []
+    xticks_val = []
+    mid_tick_locs = []
+    for outer_key in outer_keys:
+        outer_key_dict = m2_xy[outer_key]
+        inner_keys = list(outer_key_dict.keys())
+        x = outer_key_dict[inner_keys[0]]['x']
+        inds = np.arange(float(len(x)))
+        inds *= bar_width * len(inner_keys)
+        inds += sum_inds
+        sum_inds = inds[len(inds) - 1] + .5
+        inner_idx = 0
+        for inner_key in outer_key_dict:
+            yvals = np.array(outer_key_dict[inner_key]['y'])
+            ax.bar(inds + offset, yvals, bar_width, label=inner_key, color=color_ary[inner_idx]) 
+            offset += bar_width
+            inner_idx += 1
+        new_ticks_x = (inds + offset - (2 * bar_width)).tolist()
+        mid_tick_locs.append(new_ticks_x[int((len(new_ticks_x) - 1)/ 2)]) 
+        xticks_x += new_ticks_x 
+        xticks_val += list(x)
+    plt.xticks(xticks_x, xticks_val, rotation=70)
+    locs, labels = plt.xticks()
+    locs = list(locs)
+    labels = list(labels)
+    for loc in mid_tick_locs:
+        locs += [loc]
+    for ok in outer_keys:
+        labels += [ok]
+    for tick in ax.get_xticklabels():
+        if tick.get_text() in outer_keys:
+            tick.set_rotation(0)
+    plt.xticks(locs, labels)
+    handles, labels = plt.gca().get_legend_handles_labels()
+    by_label = OrderedDict(zip(labels, handles))
+    plt.legend(by_label.values(), by_label.keys())
     plt.show()
 
 def histogram(selection, plot_dim):
