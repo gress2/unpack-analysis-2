@@ -197,7 +197,7 @@ def multi_bar(multi_xy):
     plt.legend()
     plt.show()
 
-def m2_bar(m2_xy, color_ary=['orange', 'blue']):
+def m2_bar(m2_xy, color_ary=['orange', 'blue'], label_rotation=70, label_shift=-.35):
     outer_keys = list(m2_xy.keys()) 
     bar_width = 0.2
     opacity = 0.8
@@ -226,7 +226,7 @@ def m2_bar(m2_xy, color_ary=['orange', 'blue']):
         mid_tick_locs.append(new_ticks_x[int((len(new_ticks_x) - 1)/ 2)]) 
         xticks_x += new_ticks_x 
         xticks_val += list(x)
-    plt.xticks(xticks_x, xticks_val, rotation=70)
+    plt.xticks(xticks_x, xticks_val, rotation=label_rotation)
     locs, labels = plt.xticks()
     locs = list(locs)
     labels = list(labels)
@@ -234,10 +234,11 @@ def m2_bar(m2_xy, color_ary=['orange', 'blue']):
         locs += [loc]
     for ok in outer_keys:
         labels += [ok]
+    plt.xticks(locs, labels)
     for tick in ax.get_xticklabels():
         if tick.get_text() in outer_keys:
             tick.set_rotation(0)
-    plt.xticks(locs, labels)
+            tick.set_y(label_shift)
     handles, labels = plt.gca().get_legend_handles_labels()
     by_label = OrderedDict(zip(labels, handles))
     plt.legend(by_label.values(), by_label.keys())
